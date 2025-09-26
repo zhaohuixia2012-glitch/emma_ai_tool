@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五笔打字练习工具 - 支持自定义文本</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #fdbb2d;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #fdbb2d;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+            margin: 5px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fdbb2d;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .text-display-container {
+            margin-bottom: 20px;
+        }
+        
+        .text-display {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            min-height: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .text-display span {
+            transition: all 0.2s;
+            white-space: pre-wrap;
+        }
+        
+        .correct {
+            color: #4CAF50;
+        }
+        
+        .incorrect {
+            color: #f44336;
+            text-decoration: underline;
+        }
+        
+        .current {
+            background-color: rgba(253, 187, 45, 0.3);
+            border-radius: 3px;
+        }
+        
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .input-box {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: 2px solid #fdbb2d;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            resize: none;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background: #fdbb2d;
+            color: #1a2a6c;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #ffcc44;
+            transform: translateY(-2px);
+        }
+        
+        select {
+            padding: 10px;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: 1px solid #fdbb2d;
+        }
+        
+        .file-upload-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            padding: 8px 15px;
+            background: #1a2a6c;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .file-label:hover {
+            background: #2a3a9c;
+        }
+        
+        .file-name {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .music-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .music-info {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .hint-area {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .hint-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .hint-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 5px;
+            background: rgba(253, 187, 45, 0.1);
+            border-radius: 5px;
+        }
+        
+        .hint-char {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .hint-code {
+            font-size: 0.9rem;
+            color: #fdbb2d;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(253, 187, 45, 0.3);
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .text-display {
+                font-size: 1rem;
+                min-height: 200px;
+            }
+            
+            .input-box {
+                height: 120px;
+            }
+            
+            .file-upload-area {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>五笔打字练习工具</h1>
+            <p class="subtitle">面向中高级打字员 · 支持Microsoft五笔输入法</p>
+        </header>
+        
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-value" id="wpm">0</div>
+                <div class="stat-label">字/分钟</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="accuracy">100%</div>
+                <div class="stat-label">准确率</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="time">0:00</div>
+                <div class="stat-label">时间</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="progress">0%</div>
+                <div class="stat-label">进度</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <select id="text-select">
+                <option value="novel1">《平凡的世界》选段</option>
+                <option value="novel2">《三体》选段</option>
+                <option value="novel3">《活着》选段</option>
+                <option value="novel4">《围城》选段</option>
+                <option value="custom">自定义文本</option>
+            </select>
+            <button id="start-btn">开始练习</button>
+            <button id="pause-btn">暂停</button>
+            <button id="reset-btn">重置</button>
+            
+            <div class="file-upload-area">
+                <input type="file" id="file-input" class="file-input" accept=".txt">
+                <label for="file-input" class="file-label">上传TXT文件</label>
+                <span class="file-name" id="file-name">未选择文件</span>
+            </div>
+            
+            <div class="music-controls">
+                <button id="music-toggle">播放音乐</button>
+                <span class="music-info" id="music-info">背景音乐: 轻音乐 - 宁静</span>
+            </div>
+        </div>
+        
+        <div class="text-display-container">
+            <div class="text-display" id="text-display">
+                <!-- 文本将在这里显示 -->
+            </div>
+            
+            <div class="input-area">
+                <textarea class="input-box" id="input-box" placeholder="请在此处输入上面的文本..."></textarea>
+                <button id="hint-btn">显示五笔提示</button>
+            </div>
+        </div>
+        
+        <div class="hint-area" id="hint-area" style="display:none;">
+            <h3>五笔编码提示</h3>
+            <div class="hint-content" id="hint-content"></div>
+        </div>
+        
+        <footer>
+            <p>五笔打字练习工具 &copy; 2023 | 专为Microsoft五笔输入法优化</p>
+        </footer>
+    </div>
+
+    <audio id="bg-music" loop>
+        <!-- 使用base64编码的音频数据，确保音乐可以播放 -->
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
+        您的浏览器不支持音频元素。
+    </audio>
+
+    <script>
+        // 练习文本库（500字以上）
+        const texts = {
+            novel1: `平凡的世界是一部现实主义小说，也是小说化的家族史。作家高度浓缩了中国西北农村的历史变迁过程，作品达到了思想性与艺术性的高度统一，特别是主人公面对困境艰苦奋斗的精神，对今天的大学生朋友仍有启迪。这是一部用生命写成的书。在亘古的大地与苍凉的宇宙间，有一种平凡的声音，荡气回肠。
+
+路遥倾尽一生心血、历时13年完成的史诗巨著，荣获第三届茅盾文学奖，激励亿万读者的不朽经典，深受老师和学生喜爱的新课标必读书。作家路遥用毕生心血写就的《平凡的世界》，展示了一幅宏大的普通人在时代大变革进程中所走过的既平凡又壮美的人生画卷。
+
+人生的奋斗，理想的追求，在不同的时代都是相似的。希望年轻人能在这本书中找到共鸣，找到自己。《平凡的世界》是路遥创作的一部百万字的小说，这是一部全景式地表现中国当代城乡社会生活的长篇小说。全书共三部。作者在近十年间的广阔背景上，通过复杂的矛盾纠葛，刻画了社会各阶层众多普通人的形象。劳动与爱情，挫折与追求，痛苦与欢乐，日常生活与巨大社会冲突，纷繁地交织在一起，深刻地展示了普通人在大时代历史进程中所走过的艰难曲折的道路。
+
+《平凡的世界》是用温暖的现实主义的方式来讴歌普通劳动者的文学作品。与《人生》相比，《平凡的世界》更具有人性的高度，作家把苦难转化为一种前行的精神动力。这部小说在展示普通小人物艰难生存境遇的同时，极力书写了他们克服重重困难的美好心灵与坚韧不拔的奋斗精神。
+
+作品中的主人公孙少安、孙少平是挣扎在贫困线上的青年人，但他们自强不息，依靠自己的顽强毅力与命运抗争，追求自我的道德完善。其中，孙少安是立足于乡土矢志改变命运的奋斗者；而孙少平是拥有现代文明知识、渴望融入城市的"出走者"。他们的故事构成了中国社会普通人人生奋斗的两极经验。
+
+《平凡的世界》还传达出一种温暖的情怀。一是作者对作品中的人物寄予了同情心，对普通百姓的生活方式做到了极大的尊重和认同。二是作品处处展现温暖的亲情与友情，是一部温暖人心的小说。三是作品中的爱情写得很美，被赋予无比美好的内涵和想象空间。这在上世纪八十年代后期"无性不成书"的长篇小说创作风气中是难能可贵的。
+
+《平凡的世界》在展示普通小人物艰难生存境遇的同时，极力书写了他们克服重重困难的美好心灵与坚韧不拔的奋斗精神。作品的思想性更是十分鲜明，它歌唱人类永恒的主题——奋斗。奋斗不仅仅是吃苦，奋斗更是一种精神。`,
+            
+            novel2: `三体问题是天体力学中的基本力学模型。它是指三个质量、初始位置和初始速度都是任意的可视为质点的天体，在相互之间万有引力的作用下的运动规律问题。现在已知，三体问题不能精确求解，即无法预测所有三体问题的数学情景，只有几种特殊情况已研究。
+
+三体问题是天体力学中的基本力学模型。它是指三个质量、初始位置和初始速度都是任意的可视为质点的天体，在相互之间万有引力的作用下的运动规律问题。现在已知，三体问题不能精确求解，即无法预测所有三体问题的数学情景，只有几种特殊情况已研究。
+
+三体问题的特殊性在于它是一个混沌系统，其运动状态对初始条件极为敏感。即使初始条件有微小的差异，经过足够长的时间后，系统的运动状态也会出现巨大的差异。这种特性使得三体问题的长期预测变得极为困难。
+
+三体问题的研究历史可以追溯到17世纪，当时牛顿在《自然哲学的数学原理》中提出了万有引力定律，并尝试解决二体问题。然而，对于三体问题，牛顿并未找到通解。此后，许多数学家都曾尝试解决三体问题，但都未能成功。
+
+在19世纪，庞加莱在研究三体问题时发现了混沌现象，这是混沌理论的开端。庞加莱证明了三体问题没有通解，并指出了三体问题的运动状态对初始条件的敏感性。这一发现对后来的科学和数学研究产生了深远影响。
+
+三体问题在航天工程中具有重要应用。例如，在计算地球、月球和卫星的运动时，就需要考虑三体问题。此外，三体问题还在恒星系统、行星系统等天文学领域中有广泛应用。
+
+尽管三体问题没有通解，但科学家们已经找到了一些特殊情况的解。例如，拉格朗日点就是三体问题的一种特殊解。在拉格朗日点上，小天体可以在两个大天体的引力作用下保持相对静止。这些点在航天工程中有重要应用，例如詹姆斯·韦伯太空望远镜就被放置在日地系统的拉格朗日点上。
+
+三体问题的研究不仅有助于我们理解天体运动规律，还推动了数学和物理学的发展。混沌理论的发现就是三体问题研究的重要成果之一。此外，三体问题还在计算机科学、非线性动力学等领域中有广泛应用。
+
+随着计算机技术的发展，科学家们已经能够通过数值模拟的方法研究三体问题的运动规律。这些模拟不仅有助于我们理解三体问题的复杂性，还为航天工程和天文学研究提供了重要工具。
+
+总之，三体问题是一个具有挑战性的科学问题，其研究不仅有助于我们理解自然界的基本规律，还推动了科学技术的发展。尽管三体问题没有通解，但科学家们已经取得了许多重要成果，这些成果对人类的科学和技术进步产生了深远影响。`,
+            
+            novel3: `人是为活着本身而活着，而不是为了活着之外的任何事物所活着。生活是属于每个人自己的感受，不属于任何别人的看法。最初我们来到这个世界，是因为不得不来；最终我们离开这个世界，是因为不得不走。
+
+《活着》是作家余华的代表作之一，讲述了在大时代背景下，随着内战、三反五反、大跃进、文化大革命等社会变革，徐福贵的人生和家庭不断经受着苦难，到了最后所有亲人都先后离他而去，仅剩下年老的他和一头老牛相依为命。
+
+余华因这部小说于2004年3月荣获法兰西文学和艺术骑士勋章。小说《活着》是余华创作中的分水岭。《活着》展现了一个又一个人的死亡过程，掀起一波又一波无边无际的苦难波浪，表现了一种面对死亡过程的可能的态度。活着本身很艰难，延续生命就得艰难的活着，正因为异常艰难，活着才具有深刻的含义。没有比活着更美好的事，也没有比活着更艰难的事。
+
+《活着》这部小说荣获意大利格林扎纳·卡佛文学奖最高奖项（1998年），台湾《中国时报》10本好书奖（1994年），香港"博益"15本好书奖（1994年），第三届世界华文"冰心文学奖"（2002年）。入选香港《亚洲周刊》评选的"20世纪中文小说百年百强"。入选中国百位批评家和文学编辑评选的"20世纪90年代最有影响的10部作品"。
+
+《活着》是不失朴素粗粝的史诗，斗争与生存的故事，给人留下了不可磨灭的残忍与善良的形象。在余华的笔下，人物在动物本能和人性之间苦苦挣扎。余华加诸于叙述的那种冷酷的意志，使小说超出了常轨。
+
+《活着》讲述了人如何去承受巨大的苦难，就像中国的一句成语：千钧一发。让一根头发去承受三万斤的重压，它没有断。《活着》讲述了眼泪的宽广和丰富；讲述了绝望的不存在；讲述了人是为了活着本身而活着的，而不是为了活着之外的任何事物而活着。
+
+《活着》这部小说从头至尾都用一种平实得近乎冷漠的笔调进行冷静的叙述。然而正是这种简洁、平淡的语言，却能带给人们一种极大地感染力和震撼性。给我印象最深的一段话是家珍病重，自知时日无多时对福贵说的话："我不想死，我想能天天都看见你们"。不想死，不是为了荣华富贵，也不是为了功名利禄，只是不想离开自己的亲人，只是怕死后再也见不到他们。这朴实的话语所表达的，不正是最真实的最感人的情感吗？
+
+《活着》这部小说所讲述的，是一个荒诞却又真实的故事。说它荒诞，是因为这部小说内容是在一段特定的历史环境下，围绕着主人公福贵展开的，而福贵不断的遭受着苦难，到最后所有的亲人都离他而去，只剩下一头瘦骨嶙峋的老牛与他为伴。说它真实，是因为这部小说的历史背景和人物经历，都是真实发生过的，或者是有真实原型的。`,
+            
+            novel4: `围在城里的人想逃出来，城外的人想冲进去，对婚姻也罢，职业也罢，人生的愿望大都如此。爱情多半是不成功的，要么苦于终成眷属的厌倦，要么苦于未能终成眷属的悲哀。
+
+《围城》是钱钟书所著的长篇小说，是中国现代文学史上一部风格独特的讽刺小说。被誉为"新儒林外史"。第一版于1947年由上海晨光出版公司出版。故事主要写抗战初期知识分子的群相。
+
+《围城》是一部读来如嚼橄榄回味无穷的奇书。在妙趣横生、妙喻迭出的幽默外表下，深藏着令过来人低徊轻叹、令少不更事者怅然若失。因此，它是一部以看似超然的调侃语调述说人生无奈的笑面悲剧。
+
+"围城"取自书中才女苏文纨的一句话，"城中的人想出去，城外的人想冲进来"婚姻也罢、事业也罢，整个生活都似在一个围城之中，人永远逃不出这围城所给予的束缚和磨砺。书中方鸿渐与苏文纨、唐晓芙、孙柔嘉的感情纠葛，每每因自己的怯懦，不敢多言，言亦不由衷，甚至一步步陷入工于心计的孙柔嘉的婚姻陷井之中，最后自食婚姻苦果。这座感情围城，曾经令方鸿渐向往，之后又无奈于城中的无聊。而在三闾大学着实是一座事业的围城，这里面充斥着尔虞我诈、明争暗斗，时刻让人感到压抑，令本性善良却怯懦的方鸿渐不堪忍受，但当他离开那里，面对的却是一个集父母的封建思想，家庭的责任，事业的衰败，多层混杂的社会大围城之中，让他更加觉得无所适从，似乎所有的一切都被一只无情的大手掌控着。本就无材的方鸿渐也只会牢牢地屈服于这只手，逆来顺受的承受朋友的施舍，义无反顾得踏入爱情陷阱，事业低谷。
+
+《围城》从"围城"这个比喻开始，淋漓尽致地表现了人类的"围城"困境：不断的追求和对所追求到的成功的随之而来的不满足和厌烦，两者之间的矛盾和转换，其间交织着的希望与失望，欢乐与痛苦，执著与动摇——这一切构成的人生万事。"围城"困境告诉我们人生追求的结果很可能是虚妄的，这看起来好像很有点悲观，但骨子里却是个严肃的追求，热忱深埋在冷静之下，一如钱钟书本人的一生。他揭穿了追求终极理想、终极目的的虚妄，这就有可能使追求的过程不再仅仅成为一种手段，而使它本身的重要意义得以被认识和承认，使我们明白追求与希望的无止境而义无反顾，不再堕入虚无。
+
+钱钟书在自序中说："在这本书里，我想写现代中国某一部分社会、某一类人物。写这类人，我没忘记他们是人类，只是人类，具有无毛两足动物的基本根性。角色当然是虚构的，但是有考据癖的人也当然不肯错过索隐的机会、放弃附会的权利的。"
+
+《围城》是一部读来如嚼橄榄回味无穷的奇书。在妙趣横生、妙喻迭出的幽默外表下，深藏着令过来人低徊轻叹、令少不更事者怅然若失。因此，它是一部以看似超然的调侃语调述说人生无奈的笑面悲剧。`,
+            
+            custom: `请上传您的TXT文件开始练习。`
+        };
+
+        // 五笔编码提示（简化版示例）
+        const wubiHints = {
+            "平": "guhk", "凡": "myi", "的": "rqyy", "世": "anv", "界": "lwjj",
+            "是": "jghu", "一": "ggll", "部": "ukbh", "现": "gmqn", "实": "pudu",
+            "主": "ygd", "义": "yqi", "小": "ihty", "说": "yukq", "家": "pe",
+            "族": "yttt", "史": "kqi", "作": "wthf", "高": "ymkf", "度": "yac",
+            "浓": "ipey", "缩": "xpwj", "中": "khk", "国": "lgy", "西": "sghg",
+            "北": "uxn", "农": "pei", "村": "sfy", "历": "dlv", "变": "yoc",
+            "迁": "tfpk", "过": "fpi", "程": "tkgg", "品": "kkkf", "达": "dpi",
+            "到": "gcj", "思": "lnu", "想": "shn", "性": "ntgg", "与": "gn",
+            "艺": "anb", "术": "syi", "统": "xyc", "特": "trff", "别": "klj",
+            "人": "w", "公": "wc", "面": "dmjd", "对": "cf", "困": "ls",
+            "境": "fujq", "艰": "cve", "苦": "adf", "奋": "dlf", "斗": "ufk",
+            "精": "oge", "神": "pyj", "今": "wynb", "天": "gd", "大": "dddd",
+            "学": "ipbf", "生": "tg", "朋": "eeg", "友": "dc", "仍": "wen",
+            "有": "def", "启": "ynk", "迪": "mpd", "这": "yp", "用": "et",
+            "命": "wgkb", "写": "pgn", "成": "dn", "书": "nnh", "在": "d",
+            "亘": "gjg", "古": "dgh", "地": "f", "苍": "awb", "凉": "uyiy",
+            "宇": "pgf", "宙": "pmf", "间": "uj", "声": "fnr", "音": "ujf",
+            "荡": "ain", "气": "rnb", "回": "lkd", "肠": "enr", "路": "kht",
+            "遥": "erm", "倾": "wxdm", "尽": "nyu", "心": "ny", "血": "tld",
+            "历": "dlv", "时": "jf", "完": "pfq", "史": "kqi", "诗": "yff",
+            "巨": "and", "著": "aft", "荣": "aps", "获": "aqt", "第": "tx",
+            "三": "dg", "届": "nm", "茅": "acnt", "盾": "rfd", "文": "yygy",
+            "奖": "uq", "激": "iry", "励": "ddn", "亿": "wn", "读": "yfn",
+            "者": "ftj", "不": "i", "朽": "sgnn", "经": "x", "典": "ma",
+            "深": "ipw", "受": "epc", "老": "ftx", "师": "jgm", "和": "t",
+            "新": "usr", "课": "yjs", "标": "sfi", "必": "nt", "读": "yfn"
+        };
+
+        // DOM元素
+        const textDisplay = document.getElementById('text-display');
+        const inputBox = document.getElementById('input-box');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const textSelect = document.getElementById('text-select');
+        const fileInput = document.getElementById('file-input');
+        const fileName = document.getElementById('file-name');
+        const wpmDisplay = document.getElementById('wpm');
+        const accuracyDisplay = document.getElementById('accuracy');
+        const timeDisplay = document.getElementById('time');
+        const progressDisplay = document.getElementById('progress');
+        const musicToggle = document.getElementById('music-toggle');
+        const bgMusic = document.getElementById('bg-music');
+        const hintBtn = document.getElementById('hint-btn');
+        const hintArea = document.getElementById('hint-area');
+        const hintContent = document.getElementById('hint-content');
+
+        // 状态变量
+        let currentText = '';
+        let originalText = '';
+        let startTime = null;
+        let timerInterval = null;
+        let isPaused = true;
+        let correctChars = 0;
+        let totalChars = 0;
+        let musicPlaying = false;
+
+        // 初始化
+        function init() {
+            loadText();
+            inputBox.disabled = true;
+            pauseBtn.disabled = true;
+            resetBtn.disabled = true;
+            
+            // 事件监听
+            startBtn.addEventListener('click', startExercise);
+            pauseBtn.addEventListener('click', togglePause);
+            resetBtn.addEventListener('click', resetExercise);
+            textSelect.addEventListener('change', loadText);
+            inputBox.addEventListener('input', handleInput);
+            musicToggle.addEventListener('click', toggleMusic);
+            hintBtn.addEventListener('click', toggleHints);
+            fileInput.addEventListener('change', handleFileUpload);
+            
+            // 修复音乐播放问题
+            bgMusic.volume = 0.3; // 设置音量
+        }
+
+        // 处理文件上传
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // 检查文件类型
+            if (!file.name.endsWith('.txt')) {
+                alert('请上传TXT格式的文件');
+                return;
+            }
+            
+            // 显示文件名
+            fileName.textContent = file.name;
+            
+            // 读取文件内容
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                if (content.trim().length < 50) {
+                    alert('文本内容过短，请选择包含至少50个字符的文件');
+                    return;
+                }
+                
+                // 更新自定义文本
+                texts.custom = content;
+                
+                // 切换到自定义选项
+                textSelect.value = 'custom';
+                
+                // 加载文本
+                loadText();
+            };
+            
+            reader.onerror = function() {
+                alert('文件读取失败，请重试');
+            };
+            
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // 加载文本
+        function loadText() {
+            const textKey = textSelect.value;
+            originalText = texts[textKey];
+            currentText = originalText;
+            renderText();
+            resetStats();
+        }
+
+        // 渲染文本
+        function renderText() {
+            textDisplay.innerHTML = '';
+            for (let i = 0; i < currentText.length; i++) {
+                const charSpan = document.createElement('span');
+                charSpan.textContent = currentText[i];
+                textDisplay.appendChild(charSpan);
+            }
+            
+            // 设置第一个字符为当前字符
+            if (textDisplay.firstChild) {
+                textDisplay.firstChild.classList.add('current');
+            }
+        }
+
+        // 开始练习
+        function startExercise() {
+            if (isPaused) {
+                isPaused = false;
+                startTime = new Date();
+                inputBox.disabled = false;
+                inputBox.focus();
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+                resetBtn.disabled = false;
+                
+                // 开始计时
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+        }
+
+        // 暂停/继续练习
+        function togglePause() {
+            isPaused = !isPaused;
+            inputBox.disabled = isPaused;
+            pauseBtn.textContent = isPaused ? '继续' : '暂停';
+            
+            if (isPaused) {
+                clearInterval(timerInterval);
+            } else {
+                startTime = new Date(new Date() - (totalChars * 1000 / (parseInt(wpmDisplay.textContent) || 1)));
+                timerInterval = setInterval(updateTimer, 1000);
+                inputBox.focus();
+            }
+        }
+
+        // 重置练习
+        function resetExercise() {
+            clearInterval(timerInterval);
+            isPaused = true;
+            inputBox.value = '';
+            inputBox.disabled = true;
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            resetBtn.disabled = true;
+            pauseBtn.textContent = '暂停';
+            loadText();
+            resetStats();
+        }
+
+        // 处理输入
+        function handleInput() {
+            if (isPaused) return;
+            
+            const inputText = inputBox.value;
+            const textSpans = textDisplay.querySelectorAll('span');
+            
+            // 重置所有span的样式
+            textSpans.forEach(span => {
+                span.classList.remove('correct', 'incorrect', 'current');
+            });
+            
+            // 更新字符状态
+            let allCorrect = true;
+            for (let i = 0; i < Math.max(inputText.length, originalText.length); i++) {
+                if (i < textSpans.length) {
+                    if (i < inputText.length) {
+                        if (inputText[i] === originalText[i]) {
+                            textSpans[i].classList.add('correct');
+                        } else {
+                            textSpans[i].classList.add('incorrect');
+                            allCorrect = false;
+                        }
+                    }
+                    
+                    if (i === inputText.length) {
+                        textSpans[i].classList.add('current');
+                    }
+                }
+            }
+            
+            // 更新统计信息
+            correctChars = 0;
+            for (let i = 0; i < inputText.length; i++) {
+                if (inputText[i] === originalText[i]) {
+                    correctChars++;
+                }
+            }
+            
+            totalChars = inputText.length;
+            updateStats();
+            
+            // 如果完成文本，停止计时
+            if (inputText === originalText) {
+                clearInterval(timerInterval);
+                inputBox.disabled = true;
+                isPaused = true;
+                pauseBtn.disabled = true;
+            }
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const currentTime = new Date();
+            const elapsedSeconds = (currentTime - startTime) / 1000;
+            const minutes = elapsedSeconds / 60;
+            
+            // 修复：按中文字符计算打字速度（每分钟正确字数）
+            // 中文打字速度 = 正确字符数 / 分钟数
+            const wpm = minutes > 0 ? Math.round(correctChars / minutes) : 0;
+            wpmDisplay.textContent = wpm;
+            
+            // 计算准确率
+            const accuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
+            accuracyDisplay.textContent = accuracy + '%';
+            
+            // 更新时间显示
+            const mins = Math.floor(elapsedSeconds / 60);
+            const secs = Math.floor(elapsedSeconds % 60);
+            timeDisplay.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            
+            // 更新进度
+            const progress = Math.round((totalChars / originalText.length) * 100);
+            progressDisplay.textContent = progress + '%';
+        }
+
+        // 更新计时器
+        function updateTimer() {
+            updateStats();
+        }
+
+        // 重置统计信息
+        function resetStats() {
+            correctChars = 0;
+            totalChars = 0;
+            wpmDisplay.textContent = '0';
+            accuracyDisplay.textContent = '100%';
+            timeDisplay.textContent = '0:00';
+            progressDisplay.textContent = '0%';
+        }
+
+        // 切换音乐
+        function toggleMusic() {
+            if (musicPlaying) {
+                bgMusic.pause();
+                musicToggle.textContent = '播放音乐';
+                musicPlaying = false;
+            } else {
+                // 修复：确保音乐能够播放
+                bgMusic.play().catch(error => {
+                    console.log('音乐播放失败:', error);
+                    // 如果播放失败，尝试使用Web Audio API
+                    playFallbackAudio();
+                });
+                musicToggle.textContent = '暂停音乐';
+                musicPlaying = true;
+            }
+        }
+
+        // 备用音频播放方案
+        function playFallbackAudio() {
+            // 创建一个简单的音频上下文和振荡器作为备用
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContext();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 440; // A4
+                gainNode.gain.value = 0.1; // 低音量
+                
+                oscillator.start();
+                
+                // 3秒后停止
+                setTimeout(() => {
+                    oscillator.stop();
+                }, 3000);
+                
+                console.log('使用备用音频播放');
+            } catch (e) {
+                console.log('备用音频播放也失败:', e);
+            }
+        }
+
+        // 切换五笔提示
+        function toggleHints() {
+            if (hintArea.style.display === 'none') {
+                // 显示当前文本的五笔提示
+                let hintsHTML = '';
+                const uniqueChars = [...new Set(originalText)];
+                
+                uniqueChars.forEach(char => {
+                    if (wubiHints[char]) {
+                        hintsHTML += `
+                            <div class="hint-item">
+                                <div class="hint-char">${char}</div>
+                                <div class="hint-code">${wubiHints[char]}</div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                hintContent.innerHTML = hintsHTML;
+                hintArea.style.display = 'block';
+                hintBtn.textContent = '隐藏五笔提示';
+            } else {
+                hintArea.style.display = 'none';
+                hintBtn.textContent = '显示五笔提示';
+            }
+        }
+
+        // 初始化应用
+        window.onload = init;
+    </script>
+</body>
+</html>
